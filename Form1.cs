@@ -188,9 +188,19 @@ namespace Calculadora
 
         private void btnApagar_Click(object sender, EventArgs e)
         {
-            if (txtVisor.Text.Length > 0) 
+            if (expressao.Length > 0) 
             { 
-                txtVisor.Text = txtVisor.Text.Substring(0, txtVisor.Text.Length - 1); 
+                expressao = expressao.Substring(0, expressao.Length - 1); 
+            }
+
+            if (expressao.Length == 0) 
+            { 
+                txtVisor.Text = "0"; 
+            } 
+            
+            else 
+            { 
+                txtVisor.Text = expressao; 
             }
         }
     }
