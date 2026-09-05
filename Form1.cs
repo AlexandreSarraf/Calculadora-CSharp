@@ -8,6 +8,141 @@ namespace Calculadora
         }
 
         private string expressao = "";
+        private int posicao;
+
+        private bool UltimoCaractereEhOperador()
+        {
+            if (expressao.Length == 0)
+            {
+                return false;
+            }
+
+            char ultimo = expressao[expressao.Length - 1];
+
+            return ultimo == '+' ||
+                   ultimo == '-' ||
+                   ultimo == '*' ||
+                   ultimo == '/';
+        }
+
+        private double CalcularExpressao(string texto)
+        {
+            posicao = 0;
+
+            double resultado = LerExpressao(texto);
+
+            if (posicao < texto.Length)
+            {
+                throw new Exception("Expressão inválida.");
+            }
+
+            return resultado;
+        }
+
+        private double LerExpressao(string texto)
+        {
+            double resultado = LerTermo(texto);
+
+            while (posicao < texto.Length)
+            {
+                char operador = texto[posicao];
+
+                if (operador == '+')
+                {
+                    posicao++;
+                    resultado += LerTermo(texto);
+                }
+                else if (operador == '-')
+                {
+                    posicao++;
+                    resultado -= LerTermo(texto);
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return resultado;
+        }
+
+        private double LerTermo(string texto)
+        {
+            double resultado = LerFator(texto);
+
+            while (posicao < texto.Length)
+            {
+                char operador = texto[posicao];
+
+                if (operador == '*')
+                {
+                    posicao++;
+                    resultado *= LerFator(texto);
+                }
+                else if (operador == '/')
+                {
+                    posicao++;
+
+                    double divisor = LerFator(texto);
+
+                    if (divisor == 0)
+                    {
+                        throw new DivideByZeroException();
+                    }
+
+                    resultado /= divisor;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return resultado;
+        }
+
+        private double LerFator(string texto)
+        {
+            if (posicao < texto.Length &&
+                texto[posicao] == '(')
+            {
+                posicao++;
+
+                double resultado = LerExpressao(texto);
+
+                if (posicao >= texto.Length ||
+                    texto[posicao] != ')')
+                {
+                    throw new Exception("Parêntese não fechado.");
+                }
+
+                posicao++;
+
+                return resultado;
+            }
+
+            int inicio = posicao;
+
+            while (posicao < texto.Length &&
+                   (char.IsDigit(texto[posicao]) ||
+                    texto[posicao] == '.'))
+            {
+                posicao++;
+            }
+
+            if (inicio == posicao)
+            {
+                throw new Exception("Número esperado.");
+            }
+
+            string numero = texto.Substring(
+                inicio,
+                posicao - inicio);
+
+            return double.Parse(
+                numero,
+                System.Globalization.CultureInfo.InvariantCulture);
+        }
 
         private void btn0_Click(object sender, EventArgs e)
         {
@@ -114,7 +249,7 @@ namespace Calculadora
                 expressao += "7";
             }
         }
-        
+
         private void btn9_Click(object sender, EventArgs e)
         {
             if (txtVisor.Text == "0")
@@ -151,56 +286,106 @@ namespace Calculadora
 
         private void btnPonto_Click(object sender, EventArgs e)
         {
-            if (!txtVisor.Text.Contains("."))
+            string[] partes = expressao.Split('+', '-', '*', '/');
+
+            string ultimoNumero = partes[partes.Length - 1];
+
+            if (!ultimoNumero.Contains("."))
             {
-                txtVisor.Text += ".";
                 expressao += ".";
+                txtVisor.Text = expressao;
             }
         }
 
         private void btnAbreParenteses_Click(object sender, EventArgs e)
         {
-            if (txtVisor.Text == "0")
-            {
-                txtVisor.Text += "(";
-                expressao += "(";
-            }
-            else
-            {
-                txtVisor.Text += "(";
-                expressao += "(";
-            }
+            expressao += "(";
+            txtVisor.Text = expressao;
         }
 
         private void btnFechaParenteses_Click(object sender, EventArgs e)
         {
-            if (txtVisor.Text == "0")
-            {
-                txtVisor.Text += ")";
-                expressao += ")";
-            }
-            else
-            {
-                txtVisor.Text += ")";
-                expressao += ")";
-            }
+            expressao += ")";
+            txtVisor.Text = expressao;
         }
 
         private void btnApagar_Click(object sender, EventArgs e)
         {
-            if (expressao.Length > 0) 
-            { 
-                expressao = expressao.Substring(0, expressao.Length - 1); 
+            if (expressao.Length > 0)
+            {
+                expressao = expressao.Substring(0, expressao.Length - 1);
             }
 
-            if (expressao.Length == 0) 
-            { 
-                txtVisor.Text = "0"; 
-            } 
-            
-            else 
-            { 
-                txtVisor.Text = expressao; 
+            if (expressao.Length == 0)
+            {
+                txtVisor.Text = "0";
+            }
+
+            else
+            {
+                txtVisor.Text = expressao;
+            }
+        }
+
+        private void btnSoma_Click(object sender, EventArgs e)
+        {
+            if (expressao.Length > 0 && !UltimoCaractereEhOperador())
+            {
+                expressao += "+";
+                txtVisor.Text = expressao;
+            }
+        }
+
+        private void btnSubtracao_Click(object sender, EventArgs e)
+        {
+            if (expressao.Length > 0 && !UltimoCaractereEhOperador())
+            {
+                expressao += "-";
+                txtVisor.Text = expressao;
+            }
+        }
+
+        private void btnMultiplicacao_Click(object sender, EventArgs e)
+        {
+            if (expressao.Length > 0 && !UltimoCaractereEhOperador())
+            {
+                expressao += "*";
+                txtVisor.Text = expressao;
+            }
+        }
+
+        private void btnDivisao_Click(object sender, EventArgs e)
+        {
+            if (expressao.Length > 0 && !UltimoCaractereEhOperador())
+            {
+                expressao += "/";
+                txtVisor.Text = expressao;
+            }
+        }
+
+        private void btnIgual_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                double resultado = CalcularExpressao(expressao);
+
+                expressao = resultado.ToString();
+
+                txtVisor.Text = expressao;
+            }
+            catch (DivideByZeroException)
+            {
+                MessageBox.Show("Não é possível dividir por zero.");
+
+                txtVisor.Text = "0";
+                expressao = "";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Expressão inválida: " + ex.Message);
+
+                txtVisor.Text = "0";
+                expressao = "";
             }
         }
     }
