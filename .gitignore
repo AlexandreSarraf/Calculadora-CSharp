@@ -1,0 +1,16 @@
+# Visual Studio
+.vs/
+
+# Arquivos compilados
+bin/
+obj/
+
+# Configurações de usuário
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Arquivos temporários
+*.tmp
+*.log
