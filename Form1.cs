@@ -139,6 +139,29 @@ namespace Calculadora
 
         private double LerFator(string texto)
         {
+            // ===============================
+            // 1. VERIFICAR SE EXISTE UM SINAL
+            // ===============================
+
+            bool negativo = false;
+
+            if (posicao < texto.Length &&
+                texto[posicao] == '-')
+            {
+                negativo = true;
+                posicao++;
+            }
+            else if (posicao < texto.Length &&
+                     texto[posicao] == '+')
+            {
+                posicao++;
+            }
+
+
+            // ==============================
+            // 2. VERIFICAR SE É UM PARÊNTESE
+            // ==============================
+
             if (posicao < texto.Length &&
                 texto[posicao] == '(')
             {
@@ -149,13 +172,26 @@ namespace Calculadora
                 if (posicao >= texto.Length ||
                     texto[posicao] != ')')
                 {
-                    throw new Exception("Parêntese não fechado.");
+                    throw new Exception(
+                        "Parêntese não fechado."
+                    );
                 }
 
                 posicao++;
 
+                // Aplica o sinal ao resultado
+                if (negativo)
+                {
+                    resultado = -resultado;
+                }
+
                 return resultado;
             }
+
+
+            // ===============
+            // 3. LER O NÚMERO
+            // ===============
 
             int inicio = posicao;
 
@@ -166,25 +202,216 @@ namespace Calculadora
                 posicao++;
             }
 
+
+            // =====================================
+            // 4. VERIFICAR SE ENCONTRAMOS UM NÚMERO
+            // =====================================
+
             if (inicio == posicao)
             {
-                throw new Exception("Número esperado.");
+                throw new Exception(
+                    "Número esperado."
+                );
             }
+
+
+            // ===================
+            // 5. EXTRAIR O NÚMERO
+            // ===================
 
             string numero = texto.Substring(
                 inicio,
-                posicao - inicio);
+                posicao - inicio
+            );
+
+
+            // ===============================
+            // 6. CONVERTER STRING PARA DOUBLE
+            // ===============================
 
             if (!double.TryParse(
-                 numero,
-                    System.Globalization.NumberStyles.Any,
-                    System.Globalization.CultureInfo.InvariantCulture,
-                    out double valor))
+                numero,
+                System.Globalization.NumberStyles.Any,
+                System.Globalization.CultureInfo.InvariantCulture,
+                out double valor))
             {
-                throw new Exception("Número inválido.");
+                throw new Exception(
+                    "Número inválido."
+                );
+            }
+
+
+            // ==================
+            // 7. APLICAR O SINAL
+            // ==================
+
+            if (negativo)
+            {
+                valor = -valor;
             }
 
             return valor;
+        }
+
+        private bool NumeroAtualTemPonto()
+        {
+            int inicio = expressao.Length - 1;
+
+            while (inicio >= 0)
+            {
+                char caractere = expressao[inicio];
+
+                if (caractere == '+' ||
+                    caractere == '*' ||
+                    caractere == '/')
+                {
+                    break;
+                }
+
+                if (caractere == '-')
+                {
+                    if (inicio == 0 ||
+                        expressao[inicio - 1] == '+' ||
+                        expressao[inicio - 1] == '*' ||
+                        expressao[inicio - 1] == '/' ||
+                        expressao[inicio - 1] == '(')
+                    {
+                        break;
+                    }
+                }
+
+                inicio--;
+            }
+
+            string numeroAtual =
+                expressao.Substring(inicio + 1);
+
+            return numeroAtual.Contains(".");
+        }
+
+        private int ContarParentesesAbertos(string texto)
+        {
+            int saldo = 0;
+
+            foreach (char caractere in texto)
+            {
+                if (caractere == '(')
+                {
+                    saldo++;
+                }
+                else if (caractere == ')')
+                {
+                    saldo--;
+
+                    if (saldo < 0)
+                    {
+                        throw new Exception(
+                            "Existe um parêntese fechando sem abertura."
+                        );
+                    }
+                }
+            }
+
+            return saldo;
+        }
+
+        private void CompletarParenteses()
+        {
+            int faltando = ContarParentesesAbertos(expressao);
+
+            for (int i = 0; i < faltando; i++)
+            {
+                expressao += ")";
+            }
+        }
+
+        private bool ExpressaoPodeSerCalculada()
+        {
+            if (string.IsNullOrEmpty(expressao))
+            {
+                return false;
+            }
+
+            char ultimo = expressao[expressao.Length - 1];
+
+            // Não pode terminar com operador
+            if (ultimo == '+' ||
+                ultimo == '-' ||
+                ultimo == '*' ||
+                ultimo == '/')
+            {
+                return false;
+            }
+
+            // Não pode terminar abrindo parêntese
+            if (ultimo == '(')
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private string InserirMultiplicacoesImplicitas(string texto)
+        {
+            string resultado = "";
+
+            for (int i = 0; i < texto.Length; i++)
+            {
+                char atual = texto[i];
+
+                resultado += atual;
+
+                if (i + 1 >= texto.Length)
+                {
+                    continue;
+                }
+
+                char proximo = texto[i + 1];
+
+                // =====================================================
+                // CASO 1
+                // Número seguido de "("
+                //
+                // 2(3) → 2*(3)
+                // 5(-2) → 5*(-2)
+                // 10(4+2) → 10*(4+2)
+                // =====================================================
+
+                if (char.IsDigit(atual) && proximo == '(')
+                {
+                    resultado += "*";
+                }
+
+                // =====================================================
+                // CASO 2
+                // ")" seguido de "("
+                //
+                // (2)(3) → (2)*(3)
+                // (-5)(8) → (-5)*(8)
+                // (2+3)(4+5) → (2+3)*(4+5)
+                // =====================================================
+
+                else if (atual == ')' && proximo == '(')
+                {
+                    resultado += "*";
+                }
+
+                // =====================================================
+                // CASO 3
+                // ")" seguido de número
+                //
+                // (2)3 → (2)*3
+                // (-5)8 → (-5)*8
+                // =====================================================
+
+                else if (atual == ')' && char.IsDigit(proximo))
+                {
+                    resultado += "*";
+                }
+            }
+
+            return resultado;
         }
 
         private void btn0_Click(object sender, EventArgs e)
@@ -241,13 +468,10 @@ namespace Calculadora
 
         private void btnPonto_Click(object sender, EventArgs e)
         {
-            string[] partes = expressao.Split('+', '-', '*', '/');
-
-            string ultimoNumero = partes[partes.Length - 1];
-
-            if (!ultimoNumero.Contains("."))
+            if (!NumeroAtualTemPonto())
             {
                 expressao += ".";
+
                 txtVisor.Text = expressao;
             }
         }
@@ -261,25 +485,56 @@ namespace Calculadora
                 resultadoExibido = false;
             }
 
+            // =====================================================
+            // 1. EXPRESSÃO VAZIA
+            // =====================================================
+
             if (expressao.Length == 0)
             {
                 expressao += "(";
+                txtVisor.Text = expressao;
+                return;
             }
-            else
+
+
+            // =====================================================
+            // 2. VERIFICAR O ÚLTIMO CARACTERE
+            // =====================================================
+
+            char ultimo = expressao[expressao.Length - 1];
+
+
+            // =====================================================
+            // 3. SE O ÚLTIMO CARACTERE FOR UM NÚMERO OU ")" INSERE "*" AUTOMATICAMENTE
+            // =====================================================
+
+            if (char.IsDigit(ultimo) ||
+                ultimo == ')')
             {
-                char ultimo = expressao[expressao.Length - 1];
+                expressao += "*(";
 
-                if (ultimo == '+' ||
-                    ultimo == '-' ||
-                    ultimo == '*' ||
-                    ultimo == '/' ||
-                    ultimo == '(')
-                {
-                    expressao += "(";
-                }
+                txtVisor.Text = expressao;
+
+                return;
             }
 
-            txtVisor.Text = expressao;
+
+            // =====================================================
+            // 4. SE FOR OPERADOR OU "(" PODE ABRIR O PARÊNTESE NORMALMENTE
+            // =====================================================
+
+            if (ultimo == '+' ||
+                ultimo == '-' ||
+                ultimo == '*' ||
+                ultimo == '/' ||
+                ultimo == '(')
+            {
+                expressao += "(";
+
+                txtVisor.Text = expressao;
+
+                return;
+            }
         }
 
         private void btnFechaParenteses_Click(object sender, EventArgs e)
@@ -291,6 +546,7 @@ namespace Calculadora
 
             char ultimo = expressao[expressao.Length - 1];
 
+            // Não pode fechar depois de operador
             if (ultimo == '+' ||
                 ultimo == '-' ||
                 ultimo == '*' ||
@@ -300,25 +556,26 @@ namespace Calculadora
                 return;
             }
 
-            int abertos = 0;
-            int fechados = 0;
-
-            foreach (char caractere in expressao)
+            try
             {
-                if (caractere == '(')
+                int abertos =
+                    ContarParentesesAbertos(expressao);
+
+                if (abertos > 0)
                 {
-                    abertos++;
-                }
-                else if (caractere == ')')
-                {
-                    fechados++;
+                    expressao += ")";
+
+                    txtVisor.Text = expressao;
                 }
             }
-
-            if (abertos > fechados)
+            catch (Exception ex)
             {
-                expressao += ")";
-                txtVisor.Text = expressao;
+                MessageBox.Show(
+                    ex.Message,
+                    "Calculadora",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
             }
         }
 
@@ -334,6 +591,7 @@ namespace Calculadora
             if (expressao.Length == 0)
             {
                 txtVisor.Text = "0";
+                txtResultado.Text = "";
             }
 
             else
@@ -349,7 +607,71 @@ namespace Calculadora
 
         private void btnSubtracao_Click(object sender, EventArgs e)
         {
-            AdicionarOperador("-");
+            if (resultadoExibido)
+            {
+                expressao = "";
+                txtVisor.Text = "0";
+                resultadoExibido = false;
+            }
+
+            // -----------------------------------------
+            // Expressão vazia → número negativo
+            // -----------------------------------------
+
+            if (expressao.Length == 0)
+            {
+                expressao = "-";
+                txtVisor.Text = expressao;
+
+                return;
+            }
+
+            char ultimo =
+                expressao[expressao.Length - 1];
+
+
+            // -----------------------------------------
+            // Depois de +, * ou /
+            // -----------------------------------------
+
+            if (ultimo == '+' ||
+                ultimo == '*' ||
+                ultimo == '/')
+            {
+                expressao += "-";
+
+                txtVisor.Text = expressao;
+
+                return;
+            }
+
+
+            // -----------------------------------------
+            // Depois de (
+            // -----------------------------------------
+
+            if (ultimo == '(')
+            {
+                expressao += "-";
+
+                txtVisor.Text = expressao;
+
+                return;
+            }
+
+
+            // -----------------------------------------
+            // Caso normal: subtração
+            // -----------------------------------------
+
+            if (ultimo != '-')
+            {
+                expressao += "-";
+
+                txtVisor.Text = expressao;
+
+                resultadoExibido = false;
+            }
         }
 
         private void btnMultiplicacao_Click(object sender, EventArgs e)
@@ -369,13 +691,7 @@ namespace Calculadora
                 return;
             }
 
-            char ultimo = expressao[expressao.Length - 1];
-
-            if (ultimo == '+' ||
-                ultimo == '-' ||
-                ultimo == '*' ||
-                ultimo == '/' ||
-                ultimo == '(')
+            if (!ExpressaoPodeSerCalculada())
             {
                 MessageBox.Show(
                     "A expressão está incompleta.",
@@ -387,19 +703,34 @@ namespace Calculadora
                 return;
             }
 
+
             try
             {
+                // Insere automaticamente os * necessários
+                expressao = InserirMultiplicacoesImplicitas(expressao);
+
+                // Completa parênteses abertos
+                int parentesesFaltando =
+                    ContarParentesesAbertos(expressao);
+
+                if (parentesesFaltando > 0)
+                {
+                    CompletarParenteses();
+                }
+
+                txtVisor.Text = expressao;
+
                 double resultado =
                     CalcularExpressao(expressao);
 
-                expressao = resultado.ToString(
-                    System.Globalization.CultureInfo.InvariantCulture
-                );
-
-                txtResultado.Text = expressao;
+                txtResultado.Text =
+                    resultado.ToString(
+                        System.Globalization.CultureInfo.InvariantCulture
+                    );
 
                 resultadoExibido = true;
             }
+
             catch (DivideByZeroException)
             {
                 MessageBox.Show(
@@ -410,9 +741,11 @@ namespace Calculadora
                 );
 
                 txtVisor.Text = "0";
+                txtResultado.Text = "";
                 expressao = "";
                 resultadoExibido = false;
             }
+
             catch (Exception ex)
             {
                 MessageBox.Show(
@@ -421,6 +754,8 @@ namespace Calculadora
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning
                 );
+
+                txtResultado.Text = "";
             }
         }
     }
