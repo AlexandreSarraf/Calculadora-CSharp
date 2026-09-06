@@ -55,7 +55,7 @@
             // txtVisor
             // 
             txtVisor.Font = new Font("Segoe UI", 15F);
-            txtVisor.Location = new Point(10, 52);
+            txtVisor.Location = new Point(10, 59);
             txtVisor.Margin = new Padding(3, 2, 3, 2);
             txtVisor.Name = "txtVisor";
             txtVisor.Size = new Size(261, 34);
@@ -65,12 +65,13 @@
             // 
             // txtResultado
             // 
-            txtResultado.Font = new Font("Segoe UI", 15F);
+            txtResultado.Font = new Font("Segoe UI", 20F);
             txtResultado.Location = new Point(10, 16);
             txtResultado.Margin = new Padding(3, 2, 3, 2);
             txtResultado.Name = "txtResultado";
-            txtResultado.Size = new Size(261, 34);
+            txtResultado.Size = new Size(261, 43);
             txtResultado.TabIndex = 1;
+            txtResultado.TextAlign = HorizontalAlignment.Right;
             // 
             // btn0
             // 

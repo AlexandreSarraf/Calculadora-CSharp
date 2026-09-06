@@ -233,6 +233,7 @@ namespace Calculadora
 
         private void btnC_Click(object sender, EventArgs e)
         {
+            txtResultado.Text = "";
             txtVisor.Text = "0";
             expressao = "";
             resultadoExibido = false;
@@ -395,7 +396,7 @@ namespace Calculadora
                     System.Globalization.CultureInfo.InvariantCulture
                 );
 
-                txtVisor.Text = expressao;
+                txtResultado.Text = expressao;
 
                 resultadoExibido = true;
             }
