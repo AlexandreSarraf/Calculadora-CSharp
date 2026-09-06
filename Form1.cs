@@ -9,20 +9,27 @@ namespace Calculadora
 
         private string expressao = "";
         private int posicao;
+        private bool resultadoExibido = false;
 
-        private bool UltimoCaractereEhOperador()
+        private void AdicionarNumero(string numero)
         {
-            if (expressao.Length == 0)
+            if (resultadoExibido)
             {
-                return false;
+                expressao = "";
+                txtVisor.Text = "0";
+                resultadoExibido = false;
             }
 
-            char ultimo = expressao[expressao.Length - 1];
-
-            return ultimo == '+' ||
-                   ultimo == '-' ||
-                   ultimo == '*' ||
-                   ultimo == '/';
+            if (txtVisor.Text == "0" && expressao == "")
+            {
+                txtVisor.Text = numero;
+                expressao = numero;
+            }
+            else
+            {
+                txtVisor.Text += numero;
+                expressao += numero;
+            }
         }
 
         private double CalcularExpressao(string texto)
@@ -146,142 +153,53 @@ namespace Calculadora
 
         private void btn0_Click(object sender, EventArgs e)
         {
-            if (txtVisor.Text == "0")
-            {
-                txtVisor.Text = "0";
-                expressao += "0";
-            }
-            else
-            {
-                txtVisor.Text += "0";
-                expressao += "0";
-            }
+            AdicionarNumero("0");
         }
 
         private void btn1_Click(object sender, EventArgs e)
         {
-            if (txtVisor.Text == "0")
-            {
-                txtVisor.Text = "1";
-                expressao += "1";
-            }
-            else
-            {
-                txtVisor.Text += "1";
-                expressao += "1";
-            }
+            AdicionarNumero("1");
         }
         private void btn2_Click(object sender, EventArgs e)
         {
-            if (txtVisor.Text == "0")
-            {
-                txtVisor.Text = "2";
-                expressao += "2";
-            }
-            else
-            {
-                txtVisor.Text += "2";
-                expressao += "2";
-            }
+            AdicionarNumero("2");
         }
         private void btn3_Click(object sender, EventArgs e)
         {
-            if (txtVisor.Text == "0")
-            {
-                txtVisor.Text = "3";
-                expressao += "3";
-            }
-            else
-            {
-                txtVisor.Text += "3";
-                expressao += "3";
-            }
+            AdicionarNumero("3");
         }
         private void btn4_Click(object sender, EventArgs e)
         {
-            if (txtVisor.Text == "0")
-            {
-                txtVisor.Text = "4";
-                expressao += "4";
-            }
-            else
-            {
-                txtVisor.Text += "4";
-                expressao += "4";
-            }
+            AdicionarNumero("4");
         }
         private void btn5_Click(object sender, EventArgs e)
         {
-            if (txtVisor.Text == "0")
-            {
-                txtVisor.Text = "5";
-                expressao += "5";
-            }
-            else
-            {
-                txtVisor.Text += "5";
-                expressao += "5";
-            }
+            AdicionarNumero("5");
         }
         private void btn6_Click(object sender, EventArgs e)
         {
-            if (txtVisor.Text == "0")
-            {
-                txtVisor.Text = "6";
-                expressao += "6";
-            }
-            else
-            {
-                txtVisor.Text += "6";
-                expressao += "6";
-            }
+            AdicionarNumero("6");
         }
         private void btn7_Click(object sender, EventArgs e)
         {
-            if (txtVisor.Text == "0")
-            {
-                txtVisor.Text = "7";
-                expressao += "7";
-            }
-            else
-            {
-                txtVisor.Text += "7";
-                expressao += "7";
-            }
-        }
-
-        private void btn9_Click(object sender, EventArgs e)
-        {
-            if (txtVisor.Text == "0")
-            {
-                txtVisor.Text = "9";
-                expressao += "9";
-            }
-            else
-            {
-                txtVisor.Text += "9";
-                expressao += "9";
-            }
+            AdicionarNumero("7");
         }
 
         private void btn8_Click(object sender, EventArgs e)
         {
-            if (txtVisor.Text == "0")
-            {
-                txtVisor.Text = "8";
-                expressao += "8";
-            }
-            else
-            {
-                txtVisor.Text += "8";
-                expressao += "8";
-            }
+            AdicionarNumero("8");
+        }
+
+        private void btn9_Click(object sender, EventArgs e)
+        {
+            AdicionarNumero("9");
         }
 
         private void btnC_Click(object sender, EventArgs e)
         {
             txtVisor.Text = "0";
             expressao = "";
+            resultadoExibido = false;
         }
 
         private void btnPonto_Click(object sender, EventArgs e)
