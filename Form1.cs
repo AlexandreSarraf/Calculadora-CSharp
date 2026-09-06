@@ -32,6 +32,35 @@ namespace Calculadora
             }
         }
 
+        private void AdicionarOperador(string operador)
+        {
+            if (expressao.Length == 0)
+            {
+                return;
+            }
+
+            char ultimo = expressao[expressao.Length - 1];
+
+            if (ultimo == '+' ||
+                ultimo == '-' ||
+                ultimo == '*' ||
+                ultimo == '/')
+            {
+                return;
+            }
+
+            if (ultimo == '(')
+            {
+                return;
+            }
+
+            expressao += operador;
+
+            txtVisor.Text = expressao;
+
+            resultadoExibido = false;
+        }
+
         private double CalcularExpressao(string texto)
         {
             posicao = 0;
@@ -146,9 +175,16 @@ namespace Calculadora
                 inicio,
                 posicao - inicio);
 
-            return double.Parse(
-                numero,
-                System.Globalization.CultureInfo.InvariantCulture);
+            if (!double.TryParse(
+                 numero,
+                    System.Globalization.NumberStyles.Any,
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    out double valor))
+            {
+                throw new Exception("Número inválido.");
+            }
+
+            return valor;
         }
 
         private void btn0_Click(object sender, EventArgs e)
@@ -217,14 +253,72 @@ namespace Calculadora
 
         private void btnAbreParenteses_Click(object sender, EventArgs e)
         {
-            expressao += "(";
+            if (resultadoExibido)
+            {
+                expressao = "";
+                txtVisor.Text = "0";
+                resultadoExibido = false;
+            }
+
+            if (expressao.Length == 0)
+            {
+                expressao += "(";
+            }
+            else
+            {
+                char ultimo = expressao[expressao.Length - 1];
+
+                if (ultimo == '+' ||
+                    ultimo == '-' ||
+                    ultimo == '*' ||
+                    ultimo == '/' ||
+                    ultimo == '(')
+                {
+                    expressao += "(";
+                }
+            }
+
             txtVisor.Text = expressao;
         }
 
         private void btnFechaParenteses_Click(object sender, EventArgs e)
         {
-            expressao += ")";
-            txtVisor.Text = expressao;
+            if (expressao.Length == 0)
+            {
+                return;
+            }
+
+            char ultimo = expressao[expressao.Length - 1];
+
+            if (ultimo == '+' ||
+                ultimo == '-' ||
+                ultimo == '*' ||
+                ultimo == '/' ||
+                ultimo == '(')
+            {
+                return;
+            }
+
+            int abertos = 0;
+            int fechados = 0;
+
+            foreach (char caractere in expressao)
+            {
+                if (caractere == '(')
+                {
+                    abertos++;
+                }
+                else if (caractere == ')')
+                {
+                    fechados++;
+                }
+            }
+
+            if (abertos > fechados)
+            {
+                expressao += ")";
+                txtVisor.Text = expressao;
+            }
         }
 
         private void btnApagar_Click(object sender, EventArgs e)
@@ -233,6 +327,8 @@ namespace Calculadora
             {
                 expressao = expressao.Substring(0, expressao.Length - 1);
             }
+
+            resultadoExibido = false;
 
             if (expressao.Length == 0)
             {
@@ -247,63 +343,83 @@ namespace Calculadora
 
         private void btnSoma_Click(object sender, EventArgs e)
         {
-            if (expressao.Length > 0 && !UltimoCaractereEhOperador())
-            {
-                expressao += "+";
-                txtVisor.Text = expressao;
-            }
+            AdicionarOperador("+");
         }
 
         private void btnSubtracao_Click(object sender, EventArgs e)
         {
-            if (expressao.Length > 0 && !UltimoCaractereEhOperador())
-            {
-                expressao += "-";
-                txtVisor.Text = expressao;
-            }
+            AdicionarOperador("-");
         }
 
         private void btnMultiplicacao_Click(object sender, EventArgs e)
         {
-            if (expressao.Length > 0 && !UltimoCaractereEhOperador())
-            {
-                expressao += "*";
-                txtVisor.Text = expressao;
-            }
+            AdicionarOperador("*");
         }
 
         private void btnDivisao_Click(object sender, EventArgs e)
         {
-            if (expressao.Length > 0 && !UltimoCaractereEhOperador())
-            {
-                expressao += "/";
-                txtVisor.Text = expressao;
-            }
+            AdicionarOperador("/");
         }
 
         private void btnIgual_Click(object sender, EventArgs e)
         {
+            if (expressao.Length == 0)
+            {
+                return;
+            }
+
+            char ultimo = expressao[expressao.Length - 1];
+
+            if (ultimo == '+' ||
+                ultimo == '-' ||
+                ultimo == '*' ||
+                ultimo == '/' ||
+                ultimo == '(')
+            {
+                MessageBox.Show(
+                    "A expressão está incompleta.",
+                    "Calculadora",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
+
+                return;
+            }
+
             try
             {
-                double resultado = CalcularExpressao(expressao);
+                double resultado =
+                    CalcularExpressao(expressao);
 
-                expressao = resultado.ToString();
+                expressao = resultado.ToString(
+                    System.Globalization.CultureInfo.InvariantCulture
+                );
 
                 txtVisor.Text = expressao;
+
+                resultadoExibido = true;
             }
             catch (DivideByZeroException)
             {
-                MessageBox.Show("Não é possível dividir por zero.");
+                MessageBox.Show(
+                    "Não é possível dividir por zero.",
+                    "Erro",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
 
                 txtVisor.Text = "0";
                 expressao = "";
+                resultadoExibido = false;
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Expressão inválida: " + ex.Message);
-
-                txtVisor.Text = "0";
-                expressao = "";
+                MessageBox.Show(
+                    "Expressão inválida.\n\n" + ex.Message,
+                    "Erro",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
             }
         }
     }
