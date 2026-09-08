@@ -518,10 +518,7 @@ namespace Calculadora
                 return;
             }
 
-
-            // =====================================================
             // 4. SE FOR OPERADOR OU "(" PODE ABRIR O PARÊNTESE NORMALMENTE
-            // =====================================================
 
             if (ultimo == '+' ||
                 ultimo == '-' ||
