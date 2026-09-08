@@ -614,9 +614,9 @@ namespace Calculadora
                 resultadoExibido = false;
             }
 
-            // -----------------------------------------
+            // ---------------------------------
             // Expressão vazia → número negativo
-            // -----------------------------------------
+            // ---------------------------------
 
             if (expressao.Length == 0)
             {
